@@ -1,0 +1,227 @@
+
+<!DOCTYPE html>
+<html lang="en" >
+
+<head>
+
+  <meta charset="UTF-8">
+  
+<link rel="apple-touch-icon" type="image/png" href="https://cpwebassets.codepen.io/assets/favicon/apple-touch-icon-5ae1a0698dcc2402e9712f7d01ed509a57814f994c660df9f7a952f3060705ee.png" />
+<meta name="apple-mobile-web-app-title" content="CodePen">
+
+<link rel="shortcut icon" type="image/x-icon" href="https://cpwebassets.codepen.io/assets/favicon/favicon-aec34940fbc1a6e787974dcd360f2c6b63348d4b1f4e06c77743096d55480f33.ico" />
+
+<link rel="mask-icon" type="image/x-icon" href="https://cpwebassets.codepen.io/assets/favicon/logo-pin-8f3771b1072e3c38bd662872f6b673a722f4b3ca2421637d5596661b4e2132cc.svg" color="#111" />
+
+
+  <title>CodePen - Lottery prize generator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+<link href="https://fonts.googleapis.com/css?family=Do+Hyeon" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/meyer-reset/2.0/reset.min.css">
+
+  
+  
+<style>
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Do Hyeon", sans-serif;
+  background: #7049f7;
+}
+
+.title {
+  text-align: center;
+  margin: 1.2em 0;
+  font-size: 2em;
+  color: #FBFFFE;
+  text-transform: uppercase;
+}
+
+.container {
+  display: flex;
+  flex-wrap: wrap;
+  width: 620px;
+  margin: 20px auto;
+}
+
+.square {
+  border: 1px solid lightpink;
+  flex: 0 0 200px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+  background: #EB73B2;
+}
+.square.square:not(:nth-child(3n)) {
+  margin-right: 10px;
+}
+.square.square:not(:nth-child(n+7)) {
+  margin-bottom: 10px;
+}
+.square.is-active {
+  border: 20px solid gold;
+}
+
+.square__content {
+  font-size: 2.8em;
+}
+
+.square__start-btn {
+  background: gold;
+  color: #e97573;
+  font-size: 2em;
+  cursor: pointer;
+}
+.square__start-btn:hover {
+  background: #ffeb80;
+}
+</style>
+
+  <script>
+  window.console = window.console || function(t) {};
+</script>
+
+  
+  
+  <script>
+  if (document.location.search.match(/type=embed/gi)) {
+    window.parent.postMessage("resize", "*");
+  }
+</script>
+
+
+</head>
+
+<body translate="no" >
+  <h1 class="title">今晚食咩好2.0</h1>
+<section class="container" id="js-lotto">
+    <div class="square" data-order="0">
+        <div class="square__content">泰國野</div>
+    </div>
+    <div class="square" data-order="1">
+        <div class="square__content">牛扒</div>
+    </div>
+    <div class="square" data-order="2">
+        <div class="square__content">譚仔</div>
+    </div>
+    <div class="square" data-order="7">
+        <div class="square__content">海南雞</div>
+    </div>
+    <div class="square square__start-btn" id="js-start">
+        <div>START</div>
+    </div>
+    <div class="square" data-order="3">
+        <div class="square__content">粥</div>
+    </div>
+    <div class="square" data-order="6">
+        <div class="square__content">火鍋</div>
+    </div>
+    <div class="square" data-order="5">
+        <div class="square__content">三餸飯</div>
+    </div>
+    <div class="square" data-order="4">
+        <div class="square__content">韓國野</div>
+    </div>
+</section>
+    <script src="https://cpwebassets.codepen.io/assets/common/stopExecutionOnTimeout-1b93190375e9ccc259df3a57c1abc0e64599724ae30d7ea4c6877eb615f89387.js"></script>
+
+  <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js'></script>
+<script src='https://unpkg.com/sweetalert/dist/sweetalert.min.js'></script>
+      <script id="rendered-js" >
+const prizes = {
+  0: '泰國野',
+  1: '牛扒',
+  2: '譚仔',
+  3: '粥',
+  4: '韓國野',
+  5: '三餸飯',
+  6: '火鍋',
+  7: '海南雞' };
+
+const total_items = 8;
+const minimum_jumps = 30; // 超過這數字開始進入抽獎
+let current_index = -1;
+let jumps = 0;
+let speed = 30;
+let timer = 0;
+let prize = -1;
+
+function runCircle() {
+  $(`[data-order="${current_index}"]`).removeClass('is-active');
+
+  current_index += 1;
+
+  if (current_index > total_items - 1) {
+    current_index = 0;
+  }
+
+  $(`[data-order="${current_index}"]`).addClass('is-active');
+}
+
+function generatePrizeNumber() {
+  return Math.floor(Math.random() * total_items);
+}
+
+function controllSpeed() {
+  jumps += 1;
+  runCircle();
+  // 1. 抽到獎品停止遊戲
+  if (jumps > minimum_jumps + 10 && prize === current_index) {
+    clearTimeout(timer);
+
+    swal({
+      title: `今晚食既係 ${prizes[current_index]}`,
+      text: 'Congratulations!',
+      icon: 'success' });
+
+
+    prize = -1;
+    jumps = 0;
+    // 2. 還沒抽繼續跑
+  } else {
+    // 還沒進入關鍵抽獎階段前的速度 (前菜轉特效)
+    if (jumps < minimum_jumps) {
+      speed -= 5; // 加快
+      // 決定獎品的位置
+    } else if (jumps === minimum_jumps) {
+      const random_number = generatePrizeNumber();
+      prize = random_number;
+    } else {
+      // 下一個就是獎品時放慢鈍一下
+      if (jumps > minimum_jumps + 10 && prize === current_index + 1) {
+        speed += 600;
+      } else {
+        speed += 20; // 減速
+      }
+    }
+    if (speed < 40) {
+      speed = 40;
+    }
+
+    timer = setTimeout(controllSpeed, speed);
+  }
+}
+
+function init() {
+  jumps = 0;
+  speed = 100;
+  prize = -1;
+  controllSpeed();
+}
+
+$(document).ready(() => {
+  $('#js-start').on('click', init);
+});
+//# sourceURL=pen.js
+    </script>
+
+  
+
+</body>
+
+</html>
